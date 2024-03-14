@@ -2,6 +2,7 @@ import numpy as np
 import os
 import json
 import random
+import math
 
 #-------------------------------------------------------------------
 #--------------------FX attivazione---------------------------------
@@ -56,18 +57,22 @@ def fix_overflow(dictionary):
     for key, value in dictionary.items():
         if isinstance(value, list):  # Se il valore è una lista
             # Sostituisci i valori nella lista che sono superiori a 1 miliardo o inferiori a -1 miliardo con 0.1
-            dictionary[key] = [0.1 if v > 1e9 or v < -1e9 else v for v in value]
+            dictionary[key] = [round(v, 7) if v > 1e9 or v < -1e9 else v for v in value]
+            # Sostituisci i valori Infinity e NaN con 0.1
+            dictionary[key] = [0.1 if math.isinf(v) or math.isnan(v) else v for v in dictionary[key]]
         else:  # Se il valore non è una lista
             try:
                 float_value = float(value)  # Prova a convertire il valore in float
                 # Se il valore è superiore a 1 miliardo o inferiore a -1 miliardo, sostituisci con 0.1
-                if float_value > 1e9 or float_value < -1e9:
-                    dictionary[key] = 0.1
+                if math.isinf(float_value) or math.isnan(float_value):
+                    dictionary[key] = round(0.1, 7)
+                elif float_value > 1e9 or float_value < -1e9:
+                    dictionary[key] = round(0.1, 7)
                 else:
-                    dictionary[key] = float_value
+                    dictionary[key] = round(float_value, 7)
             except (ValueError, TypeError):
                 print(f"Il valore '{value}' della chiave '{key}' non può essere convertito in float.")
-                dictionary[key] = 0.1  # Se non riuscito, sostituisci il valore con 0.1
+                dictionary[key] = round(0.1, 7)  # Se non riuscito, sostituisci il valore con 0.1
     return dictionary
 
 #corpo della RN
